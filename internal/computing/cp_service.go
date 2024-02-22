@@ -822,8 +822,8 @@ func DoUbiTask(c *gin.Context) {
 			},
 		}
 
-		*job.Spec.BackoffLimit = 1
-		*job.Spec.TTLSecondsAfterFinished = 120
+		*job.Spec.BackoffLimit = 10
+		*job.Spec.TTLSecondsAfterFinished = 1200
 
 		if _, err = k8sService.k8sClient.BatchV1().Jobs(namespace).Create(context.TODO(), job, metaV1.CreateOptions{}); err != nil {
 			logs.GetLogger().Errorf("Failed creating ubi task job: %v", err)
