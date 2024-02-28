@@ -81,11 +81,13 @@ func ReceiveJob(c *gin.Context) {
 	available, err := checkResourceAvailableForSpace(jobData.JobSourceURI)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.CreateErrorResponse(util.CheckResourcesError))
+		return
 	}
 
 	if !available {
 		logs.GetLogger().Warnf(" task id: %s, name: %s, not found a resources available", jobData.TaskUUID, jobData.Name)
 		c.JSON(http.StatusInternalServerError, util.CreateErrorResponse(util.CheckAvailableResources))
+		return
 	}
 
 	var hostName string
