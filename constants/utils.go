@@ -31,3 +31,4 @@ const CPU_AMD = "AMD"
 const CPU_INTEL = "INTEL"
 
 const SPACE_TYPE_PUBLIC = "public"
+const SPACE_TYPE_UBI_TYPE = "ubi"

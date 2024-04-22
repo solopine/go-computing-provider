@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/filswan/go-mcs-sdk/mcs/api/common/logs"
 	"github.com/gomodule/redigo/redis"
+	"github.com/joho/godotenv"
 	"github.com/swanchain/go-computing-provider/constants"
 	"github.com/swanchain/go-computing-provider/internal/models"
 	"github.com/swanchain/go-computing-provider/internal/yaml"
@@ -234,6 +235,41 @@ func (d *Deploy) YamlToK8s() {
 				{
 					Name:      d.spaceUuid + "-" + fileNameWithoutExt,
 					MountPath: cr.VolumeMounts.Path,
+				},
+			}
+		}
+
+		if d.spaceType == constants.SPACE_TYPE_UBI_TYPE {
+			envFilePath := filepath.Join(os.Getenv("CP_PATH"), "fil-c2.env")
+			envVars, err := godotenv.Read(envFilePath)
+			if err != nil {
+				logs.GetLogger().Errorf("reading fil-c2-env.env failed, error: %v", err)
+				return
+			}
+
+			filC2Param := envVars["FIL_PROOFS_PARAMETER_CACHE"]
+			delete(envVars, "FIL_PROOFS_PARAMETER_CACHE")
+			for k, v := range envVars {
+				cr.Env = append(cr.Env, coreV1.EnvVar{
+					Name:  k,
+					Value: v,
+				})
+			}
+
+			volumes = []coreV1.Volume{
+				{
+					Name: "proof-params",
+					VolumeSource: coreV1.VolumeSource{
+						HostPath: &coreV1.HostPathVolumeSource{
+							Path: filC2Param,
+						},
+					},
+				},
+			}
+			volumeMount = []coreV1.VolumeMount{
+				{
+					Name:      "proof-params",
+					MountPath: "/var/tmp/filecoin-proof-parameters",
 				},
 			}
 		}

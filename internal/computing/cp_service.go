@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -704,6 +705,20 @@ func DeploySpaceTask(jobSourceURI, hostName string, duration int, jobUuid string
 		return ""
 	}
 
+	urlParse, err := url.Parse(jobSourceURI)
+	if err != nil {
+		logs.GetLogger().Errorln(err)
+		return ""
+	}
+
+	var spaceType string
+	typeStr := urlParse.Query().Get("type")
+	if strings.TrimSpace(typeStr) == constants.SPACE_TYPE_UBI_TYPE {
+		spaceType = constants.SPACE_TYPE_UBI_TYPE
+	} else {
+		spaceType = constants.SPACE_TYPE_PUBLIC
+	}
+
 	walletAddress = spaceDetail.Data.Owner.PublicAddress
 	spaceName := spaceDetail.Data.Space.Name
 	spaceUuid = strings.ToLower(spaceDetail.Data.Space.Uuid)
@@ -729,7 +744,7 @@ func DeploySpaceTask(jobSourceURI, hostName string, duration int, jobUuid string
 		return ""
 	}
 
-	deploy := NewDeploy(jobUuid, hostName, walletAddress, spaceHardware.Description, int64(duration), taskUuid, constants.SPACE_TYPE_PUBLIC)
+	deploy := NewDeploy(jobUuid, hostName, walletAddress, spaceHardware.Description, int64(duration), taskUuid, spaceType)
 	deploy.WithSpaceInfo(spaceUuid, spaceName)
 	deploy.WithGpuProductName(gpuProductName)
 
