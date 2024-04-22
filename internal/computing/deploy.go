@@ -239,7 +239,9 @@ func (d *Deploy) YamlToK8s() {
 			}
 		}
 
-		if d.spaceType == constants.SPACE_TYPE_UBI_TYPE {
+		if strings.HasPrefix(cr.ImageName, "filswan/ubi-test") {
+			//}
+			//if d.spaceType == constants.SPACE_TYPE_UBI_TYPE {
 			envFilePath := filepath.Join(os.Getenv("CP_PATH"), "fil-c2.env")
 			envVars, err := godotenv.Read(envFilePath)
 			if err != nil {
