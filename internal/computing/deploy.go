@@ -45,6 +45,9 @@ type Deploy struct {
 	gpuProductName    string
 
 	spaceType string
+
+	nodeName     string
+	architecture string
 }
 
 func NewDeploy(jobUuid, hostName, walletAddress, hardwareDesc string, duration int64, taskUuid string, spaceType string) *Deploy {
@@ -72,6 +75,16 @@ func (d *Deploy) WithHardware(cpu, memory, storage int, gpuModel string, gpuNum 
 	taskType, hardwareDetail := getHardwareDetailForPrivate(cpu, memory, storage, gpuModel, gpuNum)
 	d.hardwareResource = hardwareDetail
 	d.TaskType = taskType
+	return d
+}
+
+func (d *Deploy) WithNodeName(nodeName string) *Deploy {
+	d.nodeName = nodeName
+	return d
+}
+
+func (d *Deploy) WithArchitecture(architecture string) *Deploy {
+	d.architecture = architecture
 	return d
 }
 
@@ -239,9 +252,16 @@ func (d *Deploy) YamlToK8s() {
 			}
 		}
 
-		if strings.HasPrefix(cr.ImageName, "filswan/ubi-test") {
+		if strings.HasPrefix(cr.ImageName, "filswan/zk-fil-service") {
 			//}
 			//if d.spaceType == constants.SPACE_TYPE_UBI_TYPE {
+
+			if d.architecture == constants.CPU_AMD {
+				cr.Command = []string{"ubi-bench-amd"}
+			} else if d.architecture == constants.CPU_INTEL {
+				cr.Command = []string{"ubi-bench-intel"}
+			}
+
 			envFilePath := filepath.Join(os.Getenv("CP_PATH"), "fil-c2.env")
 			envVars, err := godotenv.Read(envFilePath)
 			if err != nil {
@@ -350,6 +370,7 @@ func (d *Deploy) YamlToK8s() {
 						Namespace: d.k8sNameSpace,
 					},
 					Spec: coreV1.PodSpec{
+						NodeName:     d.nodeName,
 						NodeSelector: generateLabel(d.gpuProductName),
 						Containers:   containers,
 						Volumes:      volumes,

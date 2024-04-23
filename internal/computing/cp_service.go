@@ -102,7 +102,7 @@ func ReceiveJob(c *gin.Context) {
 		return
 	}
 
-	available, gpuProductName, err := checkResourceAvailableForSpace(spaceDetail.Data.Space.ActiveOrder.Config.Description)
+	nodeName, architecture, available, gpuProductName, err := checkResourceAvailableForSpace(spaceDetail.Data.Space.ActiveOrder.Config.Description)
 	if err != nil {
 		logs.GetLogger().Errorf("check job resource failed, error: %+v", err)
 		c.JSON(http.StatusInternalServerError, util.CreateErrorResponse(util.CheckResourcesError))
@@ -126,7 +126,7 @@ func ReceiveJob(c *gin.Context) {
 		logHost = "log." + conf.GetConfig().API.Domain
 	}
 
-	if _, err = celeryService.DelayTask(constants.TASK_DEPLOY, jobData.JobSourceURI, hostName, jobData.Duration, jobData.UUID, jobData.TaskUUID, gpuProductName); err != nil {
+	if _, err = celeryService.DelayTask(constants.TASK_DEPLOY, jobData.JobSourceURI, hostName, jobData.Duration, jobData.UUID, jobData.TaskUUID, gpuProductName, nodeName, architecture); err != nil {
 		logs.GetLogger().Errorf("Failed sync delpoy task, error: %v", err)
 		return
 	}
@@ -203,7 +203,7 @@ func RedeployJob(c *gin.Context) {
 		return
 	}
 
-	available, gpuProductName, err := checkResourceAvailableForSpace(spaceDetail.Data.Space.ActiveOrder.Config.Description)
+	nodeName, architecture, available, gpuProductName, err := checkResourceAvailableForSpace(spaceDetail.Data.Space.ActiveOrder.Config.Description)
 	if err != nil {
 		logs.GetLogger().Errorf("check job resource failed, error: %+v", err)
 		c.JSON(http.StatusInternalServerError, util.CreateErrorResponse(util.CheckResourcesError))
@@ -249,21 +249,11 @@ func RedeployJob(c *gin.Context) {
 		hostName = generateString(10) + conf.GetConfig().API.Domain
 	}
 
-	delayTask, err := celeryService.DelayTask(constants.TASK_DEPLOY, jobData.JobResultURI, hostName, jobData.Duration, jobData.UUID, jobData.TaskUUID, gpuProductName)
+	_, err = celeryService.DelayTask(constants.TASK_DEPLOY, jobData.JobResultURI, hostName, jobData.Duration, jobData.UUID, jobData.TaskUUID, gpuProductName, nodeName, architecture)
 	if err != nil {
 		logs.GetLogger().Errorf("Failed sync delpoy task, error: %v", err)
 		return
 	}
-	logs.GetLogger().Infof("delayTask detail info: %+v", delayTask)
-
-	go func() {
-		result, err := delayTask.Get(180 * time.Second)
-		if err != nil {
-			logs.GetLogger().Errorf("Failed get sync task result, error: %v", err)
-			return
-		}
-		logs.GetLogger().Infof("Job: %s, service running successfully, job_result_url: %s", jobData.JobResultURI, result.(string))
-	}()
 
 	jobData.JobResultURI = fmt.Sprintf("https://%s", hostName)
 	if err = submitJob(&jobData); err != nil {
@@ -681,7 +671,7 @@ func handleConnection(conn *websocket.Conn, spaceDetail models.CacheSpaceDetail,
 	}
 }
 
-func DeploySpaceTask(jobSourceURI, hostName string, duration int, jobUuid string, taskUuid string, gpuProductName string) string {
+func DeploySpaceTask(jobSourceURI, hostName string, duration int, jobUuid string, taskUuid string, gpuProductName string, nodeName string, architecture string) string {
 	updateJobStatus(jobUuid, models.JobUploadResult)
 
 	var success bool
@@ -747,6 +737,8 @@ func DeploySpaceTask(jobSourceURI, hostName string, duration int, jobUuid string
 	deploy := NewDeploy(jobUuid, hostName, walletAddress, spaceHardware.Description, int64(duration), taskUuid, spaceType)
 	deploy.WithSpaceInfo(spaceUuid, spaceName)
 	deploy.WithGpuProductName(gpuProductName)
+	deploy.WithNodeName(nodeName)
+	deploy.WithArchitecture(architecture)
 
 	spacePath := filepath.Join("build", walletAddress, "spaces", spaceName)
 	os.RemoveAll(spacePath)
@@ -893,27 +885,35 @@ func getSpaceDetail(jobSourceURI string) (models.SpaceJSON, error) {
 	return spaceJson, nil
 }
 
-func checkResourceAvailableForSpace(configDescription string) (bool, string, error) {
+func checkResourceAvailableForSpace(configDescription string) (string, string, bool, string, error) {
 	taskType, hardwareDetail := getHardwareDetail(configDescription)
 	k8sService := NewK8sService()
 
 	activePods, err := k8sService.GetAllActivePod(context.TODO())
 	if err != nil {
-		return false, "", err
+		return "", "", false, "", err
 	}
 
 	nodes, err := k8sService.k8sClient.CoreV1().Nodes().List(context.TODO(), metaV1.ListOptions{})
 	if err != nil {
-		return false, "", err
+		return "", "", false, "", err
 	}
 
 	nodeGpuSummary, err := k8sService.GetNodeGpuSummary(context.TODO())
 	if err != nil {
 		logs.GetLogger().Errorf("Failed collect k8s gpu, error: %+v", err)
-		return false, "", err
+		return "", "", false, "", err
 	}
 
+	var nodeName, architecture string
 	for _, node := range nodes.Items {
+		if _, ok := node.Labels[constants.CPU_INTEL]; ok {
+			architecture = constants.CPU_INTEL
+		}
+		if _, ok := node.Labels[constants.CPU_AMD]; ok {
+			architecture = constants.CPU_AMD
+		}
+
 		nodeGpu, remainderResource, _ := GetNodeResource(activePods, &node)
 		remainderCpu := remainderResource[ResourceCpu]
 		remainderMemory := float64(remainderResource[ResourceMem] / 1024 / 1024 / 1024)
@@ -925,8 +925,9 @@ func checkResourceAvailableForSpace(configDescription string) (bool, string, err
 		logs.GetLogger().Infof("checkResourceAvailableForSpace: needCpu: %d, needMemory: %.2f, needStorage: %.2f", needCpu, needMemory, needStorage)
 		logs.GetLogger().Infof("checkResourceAvailableForSpace: remainingCpu: %d, remainingMemory: %.2f, remainingStorage: %.2f", remainderCpu, remainderMemory, remainderStorage)
 		if needCpu <= remainderCpu && needMemory <= remainderMemory && needStorage <= remainderStorage {
+			nodeName = node.Name
 			if taskType == "CPU" {
-				return true, "", nil
+				return nodeName, architecture, true, "", nil
 			} else if taskType == "GPU" {
 				var usedCount int64 = 0
 				gpuName := strings.ToUpper(strings.ReplaceAll(hardwareDetail.Gpu.Unit, " ", "-"))
@@ -944,7 +945,7 @@ func checkResourceAvailableForSpace(configDescription string) (bool, string, err
 					if strings.Contains(strings.ToUpper(gName), gpuName) {
 						gpuProductName = strings.ReplaceAll(strings.ToUpper(gName), " ", "-")
 						if usedCount+hardwareDetail.Gpu.Quantity <= gCount {
-							return true, gpuProductName, nil
+							return nodeName, architecture, true, gpuProductName, nil
 						}
 					}
 				}
@@ -952,7 +953,7 @@ func checkResourceAvailableForSpace(configDescription string) (bool, string, err
 			}
 		}
 	}
-	return false, "", nil
+	return nodeName, architecture, false, "", nil
 }
 
 func checkResourceAvailableForUbi(taskType int, gpuName string, resource *models.TaskResource) (string, string, int64, int64, int64, error) {
