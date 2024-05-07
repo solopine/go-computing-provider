@@ -156,21 +156,20 @@ var infoCmd = &cli.Command{
 
 		data := [][]string{
 			{"Multi-Address:", conf.GetConfig().API.MultiAddress},
-			{"Node ID:", formatNodeID(localNodeId)},
+			{"Node ID:", localNodeId},
 			{"ECP:"},
-			{"", "Owner:", ownerAddress},
-			{"", "Contract Address:", contractAddress},
-
-			{"", "Beneficiary Address:", beneficiaryAddress},
-			{"", "Available(SWAN-ETH):", ownerBalance},
-			{"", "Collateral(SWAN-ETH):", "0"},
-			{"", "UBI FLAG:", ubiFlag},
+			{"   Owner:", ownerAddress},
+			{"   Contract Address:", contractAddress},
+			{"   Beneficiary Address:", beneficiaryAddress},
+			{"   Available(SWAN-ETH):", ownerBalance},
+			{"   Collateral(SWAN-ETH):", "0"},
+			{"   UBI FLAG:", ubiFlag},
 			{"FCP:"},
-			{"", "Wallet:", conf.GetConfig().HUB.WalletAddress},
-			{"", "Domain:", domain},
-			{"", "Running deployments", strconv.Itoa(count)},
-			{"", "Available(SWAN-ETH):", balance},
-			{"", "Collateral(SWAN-ETH):", collateralBalance},
+			{"   Wallet:", conf.GetConfig().HUB.WalletAddress},
+			{"   Domain:", domain},
+			{"   Running deployments", strconv.Itoa(count)},
+			{"   Available(SWAN-ETH):", balance},
+			{"   Collateral(SWAN-ETH):", collateralBalance},
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
@@ -622,17 +621,4 @@ func DoSend(contractAddr, height string) error {
 		return fmt.Errorf("register cp to ubi hub failed, error: %s", resultResp.Msg)
 	}
 	return nil
-}
-
-func formatNodeID(nodeID string) string {
-	const chunkSize = 42
-	chunks := make([]string, 0, len(nodeID)/chunkSize+1)
-	for i := 0; i < len(nodeID); i += chunkSize {
-		end := i + chunkSize
-		if end > len(nodeID) {
-			end = len(nodeID)
-		}
-		chunks = append(chunks, nodeID[i:end])
-	}
-	return strings.Join(chunks, "\n")
 }
