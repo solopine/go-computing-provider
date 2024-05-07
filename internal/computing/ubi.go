@@ -589,7 +589,7 @@ func DoUbiTaskForDocker(c *gin.Context) {
 		}()
 
 		multiAddressSplit := strings.Split(conf.GetConfig().API.MultiAddress, "/")
-		receiveUrl := fmt.Sprintf("http://%s:%d/api/v1/computing/cp/docker/receive/ubi", multiAddressSplit[2], multiAddressSplit[4])
+		receiveUrl := fmt.Sprintf("http://%s:%s/api/v1/computing/cp/docker/receive/ubi", multiAddressSplit[2], multiAddressSplit[4])
 		execCommand := []string{"ubi-bench", "c2"}
 		JobName := strings.ToLower(ubiTask.ZkType) + "-" + strconv.Itoa(ubiTask.ID)
 
