@@ -126,7 +126,7 @@ var infoCmd = &cli.Command{
 		if err == nil {
 			cpAccount, err := cpStub.GetCpAccountInfo()
 			if err != nil {
-				return fmt.Errorf("get cpAccount failed, error: %v", err)
+				err = fmt.Errorf("get cpAccount failed, error: %v", err)
 			}
 			if cpAccount.UbiFlag == 1 {
 				ubiFlag = "Accept"
