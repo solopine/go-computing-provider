@@ -86,10 +86,16 @@ var ubiTaskListCmd = &cli.Command{
 
 		sort.Sort(taskList)
 		for i, task := range taskList {
-
-			reward, err := getReward(nodeID, task.TaskId)
-			if err != nil {
-				logs.GetLogger().Errorf("get task id: %s, reward failed, error: %v", task.TaskId, err)
+			var reward string
+			if task.Reward == "0.0" {
+				reward, err := getReward(nodeID, task.TaskId)
+				if err != nil {
+					logs.GetLogger().Errorf("get task id: %s, reward failed, error: %v", task.TaskId, err)
+				}
+				if reward != "0.0" {
+					task.Reward = reward
+					computing.SaveUbiTaskMetadata(&task)
+				}
 			}
 
 			taskData = append(taskData,
@@ -222,6 +228,42 @@ func getReward(nodeId, taskId string) (string, error) {
 		return fmt.Sprintf("%.2f", floatVal), nil
 	} else {
 		return "0.0", nil
+	}
+}
+
+func getEcpStatus(nodeId string) (string, error) {
+	var ecpStatus struct {
+		Code int    `json:"code"`
+		Msg  string `json:"msg"`
+		Data struct {
+			Status string `json:"status"`
+		} `json:"data"`
+	}
+
+	url := fmt.Sprintf("%s/cp/status?node_id=%s", conf.GetConfig().UBI.UbiUrl, nodeId)
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("get ubi task reward failed")
+	}
+
+	bytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	err = json.Unmarshal(bytes, &ecpStatus)
+	if err != nil {
+		return "", err
+	}
+	if ecpStatus.Code == 200 {
+		return ecpStatus.Data.Status, nil
+	} else {
+		return "", nil
 	}
 }
 

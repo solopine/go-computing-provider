@@ -153,6 +153,9 @@ var infoCmd = &cli.Command{
 		if strings.HasPrefix(domain, ".") {
 			domain = domain[1:]
 		}
+
+		ecpStatus, _ := getEcpStatus(localNodeId)
+
 		var taskData [][]string
 
 		taskData = append(taskData, []string{"Multi-Address:", conf.GetConfig().API.MultiAddress})
@@ -164,6 +167,7 @@ var infoCmd = &cli.Command{
 		taskData = append(taskData, []string{"   Beneficiary Address:", beneficiaryAddress})
 		taskData = append(taskData, []string{"   Available(SWAN-ETH):", ownerBalance})
 		taskData = append(taskData, []string{"   Collateral(SWAN-ETH):", "0"})
+		taskData = append(taskData, []string{"   Status:", ecpStatus})
 		taskData = append(taskData, []string{"FCP:"})
 		taskData = append(taskData, []string{"   Wallet:", conf.GetConfig().HUB.WalletAddress})
 		taskData = append(taskData, []string{"   Domain:", domain})
