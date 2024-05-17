@@ -137,7 +137,6 @@ func requiredFieldsAreGiven(metaData toml.MetaData) bool {
 
 		{"HUB", "ServerUrl"},
 		{"HUB", "AccessToken"},
-		{"HUB", "WalletAddress"},
 
 		{"MCS", "ApiKey"},
 		{"MCS", "BucketName"},
