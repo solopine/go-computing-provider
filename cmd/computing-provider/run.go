@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -20,8 +18,6 @@ import (
 	"github.com/swanchain/go-computing-provider/wallet"
 	"github.com/swanchain/go-computing-provider/wallet/contract/collateral"
 	"github.com/urfave/cli/v2"
-	"io"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -802,49 +798,4 @@ var changeTaskTypesCmd = &cli.Command{
 		fmt.Printf("ChangeTaskTypes Transaction hash: %s \n", changeTaskTypesTx)
 		return nil
 	},
-}
-
-func DoSend(contractAddr, height string) error {
-	type ContractReq struct {
-		Addr   string `json:"addr"`
-		Height int    `json:"height"`
-	}
-	h, _ := strconv.ParseInt(height, 10, 64)
-	var contractReq ContractReq
-	contractReq.Addr = contractAddr
-	contractReq.Height = int(h)
-
-	jsonData, err := json.Marshal(contractReq)
-	if err != nil {
-		logs.GetLogger().Errorf("JSON encoding failed: %v", err)
-		return err
-	}
-
-	resp, err := http.Post(conf.GetConfig().UBI.UbiUrl+"/contracts", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		logs.GetLogger().Errorf("POST request failed: %v", err)
-		return err
-	}
-	defer resp.Body.Close()
-
-	var resultResp struct {
-		Code int    `json:"code"`
-		Msg  string `json:"msg"`
-		Data any    `json:"data,omitempty"`
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logs.GetLogger().Errorf("read response failed: %v", err)
-		return err
-	}
-	err = json.Unmarshal(body, &resultResp)
-	if err != nil {
-		logs.GetLogger().Errorf("response convert to json failed: %v", err)
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("register cp to ubi hub failed, error: %s", resultResp.Msg)
-	}
-	return nil
 }

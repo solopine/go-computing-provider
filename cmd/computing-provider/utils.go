@@ -3,12 +3,9 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/swanchain/go-computing-provider/account"
@@ -19,7 +16,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 func createAccount(cpRepoPath, ownerAddress, beneficiaryAddress string, workerAddress string, taskTypes []uint8) error {
@@ -98,36 +94,8 @@ func createAccount(cpRepoPath, ownerAddress, beneficiaryAddress string, workerAd
 
 	fmt.Printf("Contract deployed! Address: %s\n", contractAddress.Hex())
 	fmt.Printf("Transaction hash: %s\n", tx.Hash().Hex())
-
-	var blockNumber string
-	timeout := time.After(3 * time.Minute)
-	ticker := time.Tick(3 * time.Second)
-	for {
-		select {
-		case <-timeout:
-			return fmt.Errorf("timeout waiting for transaction confirmation, tx: %s", tx.Hash().Hex())
-		case <-ticker:
-			receipt, err := client.TransactionReceipt(context.Background(), tx.Hash())
-			if err != nil {
-				if errors.Is(err, ethereum.NotFound) {
-					continue
-				}
-				return err
-			}
-
-			if receipt != nil && receipt.Status == types.ReceiptStatusSuccessful {
-				blockNumber = receipt.BlockNumber.String()
-				err := DoSend(contractAddress.Hex(), blockNumber)
-				if err != nil {
-					return err
-				}
-				fmt.Println("computing-provider successfully initialized, you can now start it with 'computing-provider ubi daemon'")
-				return nil
-			} else if receipt != nil && receipt.Status == 0 {
-				return err
-			}
-		}
-	}
+	fmt.Println("computing-provider account successfully created, you can now start it with 'computing-provider run' or 'computing-provider ubi daemon'")
+	return nil
 }
 
 func changeMultiAddress(ownerAddress, multiAddr string) error {
