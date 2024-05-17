@@ -159,10 +159,6 @@ func (task *CronTask) watchExpiredTask() {
 			}
 		}
 
-		err = NewJobService().DeleteJobs(deleteSpaceIds)
-		if err != nil {
-			logs.GetLogger().Errorf("delete spaces failed, error: %v", err)
-		}
 	})
 	c.Start()
 }

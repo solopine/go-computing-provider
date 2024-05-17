@@ -668,6 +668,7 @@ func DeploySpaceTask(jobSourceURI, hostName string, duration int, jobUuid string
 		if !success {
 			k8sNameSpace := constants.K8S_NAMESPACE_NAME_PREFIX + strings.ToLower(walletAddress)
 			deleteJob(k8sNameSpace, spaceUuid)
+			NewJobService().DeleteJobEntityBySpaceUuId(spaceUuid)
 		}
 
 		if err := recover(); err != nil {
@@ -799,7 +800,14 @@ func deleteJob(namespace, spaceUuid string) error {
 		}
 	}
 
-	NewJobService().DeleteJobEntityBySpaceUuId(spaceUuid)
+	job, err := NewJobService().GetJobEntityBySpaceUuid(spaceUuid)
+	if err != nil {
+		logs.GetLogger().Errorf("get job failed, error: %+v", err)
+		return err
+	}
+	if job.SpaceUuid != "" {
+		NewJobService().DeleteJobEntityBySpaceUuId(spaceUuid)
+	}
 
 	logs.GetLogger().Infof("Deleted space service finished, space_uuid: %s", spaceUuid)
 	return nil
