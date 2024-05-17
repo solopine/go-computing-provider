@@ -58,11 +58,11 @@ func (jobServ JobService) SaveJobEntity(job *models.JobEntity) (err error) {
 }
 
 func (jobServ JobService) UpdateJobEntityBySpaceUuid(job *models.JobEntity) (err error) {
-	return jobServ.Debug().Where("space_uuid=?", job.SpaceUuid).Updates(job).Error
+	return jobServ.Where("space_uuid=?", job.SpaceUuid).Updates(job).Error
 }
 
 func (jobServ JobService) UpdateJobEntityByJobUuid(job *models.JobEntity) (err error) {
-	return jobServ.Debug().Where("job_uuid=?", job.JobUuid).Updates(job).Error
+	return jobServ.Where("job_uuid=?", job.JobUuid).Updates(job).Error
 }
 
 func (jobServ JobService) GetJobEntityByTaskUuid(taskUuid string) (models.JobEntity, error) {
