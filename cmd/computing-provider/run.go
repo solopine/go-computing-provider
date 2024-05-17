@@ -130,6 +130,8 @@ var infoCmd = &cli.Command{
 
 				case 2:
 					taskTypes += "Aleo,"
+				case 3:
+					taskTypes += "Ai,"
 				}
 			}
 			if taskTypes != "" {
@@ -164,10 +166,10 @@ var infoCmd = &cli.Command{
 		taskData = append(taskData, []string{"Owner:", ownerAddress})
 		taskData = append(taskData, []string{"Multi-Address:", conf.GetConfig().API.MultiAddress})
 		taskData = append(taskData, []string{"Node ID:", localNodeId})
+		taskData = append(taskData, []string{"Task Types:", taskTypes})
 		taskData = append(taskData, []string{"ECP:"})
 		taskData = append(taskData, []string{"   Contract Address:", contractAddress})
 		taskData = append(taskData, []string{"   Contract Version:", version})
-		taskData = append(taskData, []string{"   Task Types:", taskTypes})
 		taskData = append(taskData, []string{"   Worker Address:", workerAddress})
 		taskData = append(taskData, []string{"   Beneficiary Address:", beneficiaryAddress})
 		taskData = append(taskData, []string{"   Available(SWAN-ETH):", ownerBalance})
@@ -183,7 +185,7 @@ var infoCmd = &cli.Command{
 			var rowColor []tablewriter.Colors
 			rowColor = []tablewriter.Colors{{tablewriter.Bold, tablewriter.FgGreenColor}}
 			rowColorList = append(rowColorList, RowColor{
-				row:    6,
+				row:    4,
 				column: []int{1},
 				color:  rowColor,
 			})
