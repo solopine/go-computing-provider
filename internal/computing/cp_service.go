@@ -130,10 +130,6 @@ func ReceiveJob(c *gin.Context) {
 		logHost = "log." + conf.GetConfig().API.Domain
 	}
 
-	go func() {
-		DeploySpaceTask(jobData.JobSourceURI, hostName, jobData.Duration, jobData.UUID, jobData.TaskUUID, gpuProductName)
-	}()
-
 	jobData.JobResultURI = fmt.Sprintf("https://%s", hostName)
 	multiAddressSplit := strings.Split(conf.GetConfig().API.MultiAddress, "/")
 	jobSourceUri := jobData.JobSourceURI
@@ -157,9 +153,14 @@ func ReceiveJob(c *gin.Context) {
 	jobEntity.BuildLog = jobData.BuildLog
 	jobEntity.ContainerLog = jobData.ContainerLog
 	jobEntity.Duration = jobData.Duration
+	jobEntity.JobUuid = jobData.UUID
 	jobEntity.Status = 1
 	jobEntity.CreateTime = time.Now().Unix()
 	NewJobService().SaveJobEntity(jobEntity)
+
+	go func() {
+		DeploySpaceTask(jobData.JobSourceURI, hostName, jobData.Duration, jobData.UUID, jobData.TaskUUID, gpuProductName)
+	}()
 
 	logs.GetLogger().Infof("submit job detail: %+v", jobData)
 	c.JSON(http.StatusOK, jobData)
@@ -267,10 +268,6 @@ func RedeployJob(c *gin.Context) {
 		hostName = generateString(10) + conf.GetConfig().API.Domain
 	}
 
-	go func() {
-		DeploySpaceTask(jobData.JobSourceURI, hostName, jobData.Duration, jobData.UUID, jobData.TaskUUID, gpuProductName)
-	}()
-
 	jobData.JobResultURI = fmt.Sprintf("https://%s", hostName)
 	if err = submitJob(&jobData); err != nil {
 		jobData.JobResultURI = ""
@@ -289,6 +286,10 @@ func RedeployJob(c *gin.Context) {
 	jobEntity.Status = 1
 	jobEntity.CreateTime = time.Now().Unix()
 	NewJobService().SaveJobEntity(jobEntity)
+
+	go func() {
+		DeploySpaceTask(jobData.JobSourceURI, hostName, jobData.Duration, jobData.UUID, jobData.TaskUUID, gpuProductName)
+	}()
 
 	c.JSON(http.StatusOK, jobData)
 }
