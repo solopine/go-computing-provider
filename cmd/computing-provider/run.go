@@ -127,7 +127,6 @@ var infoCmd = &cli.Command{
 				switch taskType {
 				case 1:
 					taskTypes += "Fil-C2,"
-
 				case 2:
 					taskTypes += "Aleo,"
 				case 3:
