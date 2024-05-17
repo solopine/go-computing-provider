@@ -143,6 +143,15 @@ func ReceiveJob(c *gin.Context) {
 		jobData.JobResultURI = ""
 	}
 
+	job, err := NewJobService().GetJobEntityBySpaceUuid(spaceUuid)
+	if err != nil {
+		logs.GetLogger().Errorf("get job failed, error: %+v", err)
+		return
+	}
+	if job.SpaceUuid != "" {
+		NewJobService().DeleteJobEntityBySpaceUuId(spaceUuid)
+	}
+
 	var jobEntity = new(models.JobEntity)
 	jobEntity.Source = jobData.StorageSource
 	jobEntity.SpaceUuid = spaceUuid
@@ -273,6 +282,16 @@ func RedeployJob(c *gin.Context) {
 		jobData.JobResultURI = ""
 	}
 	spaceUuid := jobData.JobSourceURI[strings.LastIndex(jobData.JobSourceURI, "/")+1:]
+
+	job, err := NewJobService().GetJobEntityBySpaceUuid(spaceUuid)
+	if err != nil {
+		logs.GetLogger().Errorf("get job failed, error: %+v", err)
+		return
+	}
+	if job.SpaceUuid != "" {
+		NewJobService().DeleteJobEntityBySpaceUuId(spaceUuid)
+	}
+
 	var jobEntity = new(models.JobEntity)
 	jobEntity.Source = jobData.StorageSource
 	jobEntity.SpaceUuid = spaceUuid
@@ -799,15 +818,6 @@ func deleteJob(namespace, spaceUuid string) error {
 		if !getPods {
 			break
 		}
-	}
-
-	job, err := NewJobService().GetJobEntityBySpaceUuid(spaceUuid)
-	if err != nil {
-		logs.GetLogger().Errorf("get job failed, error: %+v", err)
-		return err
-	}
-	if job.SpaceUuid != "" {
-		NewJobService().DeleteJobEntityBySpaceUuId(spaceUuid)
 	}
 
 	logs.GetLogger().Infof("Deleted space service finished, space_uuid: %s", spaceUuid)
