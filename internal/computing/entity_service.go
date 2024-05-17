@@ -54,31 +54,31 @@ type JobService struct {
 }
 
 func (jobServ JobService) SaveJobEntity(job *models.JobEntity) (err error) {
-	return jobServ.Save(job).Error
+	return jobServ.Debug().Save(job).Error
 }
 
 func (jobServ JobService) UpdateJobEntityBySpaceUuid(job *models.JobEntity) (err error) {
-	return jobServ.Where("space_uuid=?", job.SpaceUuid).Updates(job).Error
+	return jobServ.Debug().Where("space_uuid=?", job.SpaceUuid).Updates(job).Error
 }
 
 func (jobServ JobService) UpdateJobEntityByJobUuid(job *models.JobEntity) (err error) {
-	return jobServ.Where("job_uuid=?", job.JobUuid).Updates(job).Error
+	return jobServ.Debug().Where("job_uuid=?", job.JobUuid).Updates(job).Error
 }
 
 func (jobServ JobService) GetJobEntityByTaskUuid(taskUuid string) (models.JobEntity, error) {
 	var job models.JobEntity
-	err := jobServ.Where("task_uuid=?", taskUuid).Find(&job).Error
+	err := jobServ.Debug().Where("task_uuid=?", taskUuid).Find(&job).Error
 	return job, err
 }
 
 func (jobServ JobService) GetJobEntityBySpaceUuid(spaceUuid string) (models.JobEntity, error) {
 	var job models.JobEntity
-	err := jobServ.Where("space_uuid=?", spaceUuid).Find(&job).Error
+	err := jobServ.Debug().Where("space_uuid=?", spaceUuid).Find(&job).Error
 	return job, err
 }
 
 func (jobServ JobService) DeleteJobEntityBySpaceUuId(spaceUuid string) error {
-	return jobServ.Where("space_uuid=?", spaceUuid).Delete(&models.JobEntity{}).Error
+	return jobServ.Debug().Where("space_uuid=?", spaceUuid).Delete(&models.JobEntity{}).Error
 }
 
 func (jobServ JobService) GetJobList() (list []*models.JobEntity, err error) {
