@@ -63,7 +63,8 @@ func (task *TaskEntity) TableName() string {
 }
 
 const (
-	DEPLOY_DOWNLOAD_SOURCE = iota + 1
+	DEPLOY_RECEIVE_JOB = iota + 1
+	DEPLOY_DOWNLOAD_SOURCE
 	DEPLOY_UPLOAD_RESULT
 	DEPLOY_BUILD_IMAGE
 	DEPLOY_PUSH_IMAGE

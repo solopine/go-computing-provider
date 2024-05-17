@@ -163,7 +163,7 @@ func ReceiveJob(c *gin.Context) {
 	jobEntity.ContainerLog = jobData.ContainerLog
 	jobEntity.Duration = jobData.Duration
 	jobEntity.JobUuid = jobData.UUID
-	jobEntity.Status = 1
+	jobEntity.DeployStatus = models.DEPLOY_RECEIVE_JOB
 	jobEntity.CreateTime = time.Now().Unix()
 	NewJobService().SaveJobEntity(jobEntity)
 
@@ -302,7 +302,7 @@ func RedeployJob(c *gin.Context) {
 	jobEntity.BuildLog = jobData.BuildLog
 	jobEntity.ContainerLog = jobData.ContainerLog
 	jobEntity.Duration = jobData.Duration
-	jobEntity.Status = 1
+	jobEntity.DeployStatus = models.DEPLOY_RECEIVE_JOB
 	jobEntity.CreateTime = time.Now().Unix()
 	NewJobService().SaveJobEntity(jobEntity)
 
