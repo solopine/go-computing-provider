@@ -62,7 +62,7 @@ func (jobServ JobService) UpdateJobEntityBySpaceUuid(job *models.JobEntity) (err
 }
 
 func (jobServ JobService) UpdateJobEntityByJobUuid(job *models.JobEntity) (err error) {
-	return jobServ.Debug().Where("job_uuid=?", job.SpaceUuid).Updates(job).Error
+	return jobServ.Debug().Where("job_uuid=?", job.JobUuid).Updates(job).Error
 }
 
 func (jobServ JobService) GetJobEntityByTaskUuid(taskUuid string) (models.JobEntity, error) {
