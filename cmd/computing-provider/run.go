@@ -360,7 +360,7 @@ var createAccountCmd = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:  "task-types",
-			Usage: "Task types of CP (1:Fil-C2, 2:Aleo), separated by commas",
+			Usage: "Task types of CP (1:Fil-C2, 2:Aleo, 3:Ai), separated by commas",
 		},
 	},
 	Action: func(cctx *cli.Context) error {
@@ -388,15 +388,15 @@ var createAccountCmd = &cli.Command{
 		if strings.Index(taskTypes, ",") > 0 {
 			for _, taskT := range strings.Split(taskTypes, ",") {
 				tt, _ := strconv.ParseUint(taskT, 10, 64)
-				if tt != 1 && tt != 2 {
-					return fmt.Errorf("TaskTypes supports 1, 2")
+				if tt != 1 && tt != 2 && tt != 3 {
+					return fmt.Errorf("TaskTypes supports 1, 2, 3")
 				}
 				taskTypesUint = append(taskTypesUint, uint8(tt))
 			}
 		} else {
 			tt, _ := strconv.ParseUint(taskTypes, 10, 64)
-			if tt != 1 && tt != 2 {
-				return fmt.Errorf("TaskTypes supports 1, 2")
+			if tt != 1 && tt != 2 && tt != 3 {
+				return fmt.Errorf("TaskTypes supports 1, 2, 3")
 			}
 		}
 
@@ -702,7 +702,7 @@ var changeWorkerAddressCmd = &cli.Command{
 
 var changeTaskTypesCmd = &cli.Command{
 	Name:      "changeTaskTypes",
-	Usage:     "Update taskTypes of CP (1:Fil-C2, 2:Aleo), separated by commas",
+	Usage:     "Update taskTypes of CP (1:Fil-C2, 2:Aleo, 3: Ai), separated by commas",
 	ArgsUsage: "[TaskTypes]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
@@ -731,15 +731,15 @@ var changeTaskTypesCmd = &cli.Command{
 		if strings.Index(taskTypes, ",") > 0 {
 			for _, taskT := range strings.Split(taskTypes, ",") {
 				tt, _ := strconv.ParseUint(taskT, 10, 64)
-				if tt != 1 && tt != 2 {
-					return fmt.Errorf("TaskTypes supports 1, 2")
+				if tt != 1 && tt != 2 && tt != 3 {
+					return fmt.Errorf("TaskTypes supports 1, 2, 3")
 				}
 				taskTypesUint = append(taskTypesUint, uint8(tt))
 			}
 		} else {
 			tt, _ := strconv.ParseUint(taskTypes, 10, 64)
-			if tt != 1 && tt != 2 {
-				return fmt.Errorf("TaskTypes supports 1, 2")
+			if tt != 1 && tt != 2 && tt != 3 {
+				return fmt.Errorf("TaskTypes supports 1, 2, 3")
 			}
 		}
 
