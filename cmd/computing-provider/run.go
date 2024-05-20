@@ -531,7 +531,7 @@ var changeOwnerAddressCmd = &cli.Command{
 
 		changeOwnerAddressTx, err := cpStub.ChangeOwnerAddress(common.HexToAddress(newOwnerAddr))
 		if err != nil {
-			logs.GetLogger().Errorf("change owner address tx failed, error: %v,", err)
+			logs.GetLogger().Errorf("change owner address tx failed, error: %v", err)
 			return err
 		}
 		fmt.Printf("ChangeOwnerAddress: %s \n", changeOwnerAddressTx)
@@ -611,7 +611,7 @@ var changeBeneficiaryAddressCmd = &cli.Command{
 			return fmt.Errorf("get cpAccount faile, error: %v", err)
 		}
 		if !strings.EqualFold(cpAccount.OwnerAddress, ownerAddress) {
-			return fmt.Errorf("the owner address is incorrect. The owner on the chain is %s, and the current address is %s", cpAccount.OwnerAddress, ownerAddress)
+			return fmt.Errorf("Only the owner can change CP account owner address, the CP account is: %s, the owner should be %s", cpAccount.Contract, cpAccount.OwnerAddress)
 		}
 		changeBeneficiaryAddressTx, err := cpStub.ChangeBeneficiary(common.HexToAddress(beneficiaryAddress))
 		if err != nil {
@@ -694,7 +694,7 @@ var changeWorkerAddressCmd = &cli.Command{
 			return fmt.Errorf("get cpAccount faile, error: %v", err)
 		}
 		if !strings.EqualFold(cpAccount.OwnerAddress, ownerAddress) {
-			return fmt.Errorf("the owner address is incorrect. The owner on the chain is %s, and the current address is %s", cpAccount.OwnerAddress, ownerAddress)
+			return fmt.Errorf("Only the owner can change CP account owner address, the CP account is: %s, the owner should be %s", cpAccount.Contract, cpAccount.OwnerAddress)
 		}
 		changeBeneficiaryAddressTx, err := cpStub.ChangeWorkerAddress(common.HexToAddress(workerAddress))
 		if err != nil {
@@ -793,7 +793,7 @@ var changeTaskTypesCmd = &cli.Command{
 			return fmt.Errorf("get cpAccount faile, error: %v", err)
 		}
 		if !strings.EqualFold(cpAccount.OwnerAddress, ownerAddress) {
-			return fmt.Errorf("the owner address is incorrect. The owner on the chain is %s, and the current address is %s", cpAccount.OwnerAddress, ownerAddress)
+			return fmt.Errorf("Only the owner can change CP account owner address, the CP account is: %s, the owner should be %s", cpAccount.Contract, cpAccount.OwnerAddress)
 		}
 
 		changeTaskTypesTx, err := cpStub.ChangeTaskTypes(taskTypesUint)

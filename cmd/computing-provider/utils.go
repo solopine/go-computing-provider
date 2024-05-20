@@ -130,7 +130,7 @@ func changeMultiAddress(ownerAddress, multiAddr string) error {
 		return fmt.Errorf("get cpAccount faile, error: %v", err)
 	}
 	if !strings.EqualFold(cpAccount.OwnerAddress, ownerAddress) {
-		return fmt.Errorf("the owner address is incorrect. The owner on the chain is %s, and the current address is %s", cpAccount.OwnerAddress, ownerAddress)
+		return fmt.Errorf("Only the owner can change CP account owner address, the CP account is: %s, the owner should be %s", cpAccount.Contract, cpAccount.OwnerAddress)
 	}
 
 	submitUBIProofTx, err := cpStub.ChangeMultiAddress([]string{multiAddr})

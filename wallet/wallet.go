@@ -318,7 +318,7 @@ func (w *LocalWallet) WalletSend(ctx context.Context, chainName string, from, to
 	return txHash, nil
 }
 
-func (w *LocalWallet) WalletCollateral(ctx context.Context, chainName string, from string, amount string, collateralType string) (string, error) {
+func (w *LocalWallet) WalletCollateral(ctx context.Context, chainName string, from string, amount string, cpAccountAddress string, collateralType string) (string, error) {
 	defer w.keystore.Close()
 	sendAmount, err := convertToWei(amount)
 	if err != nil {
@@ -389,7 +389,7 @@ func (w *LocalWallet) WalletCollateral(ctx context.Context, chainName string, fr
 		if err != nil {
 			return "", err
 		}
-		collateralTxHash, err := zkCollateral.Deposit(sendAmount)
+		collateralTxHash, err := zkCollateral.Deposit(cpAccountAddress, sendAmount)
 		if err != nil {
 			return "", err
 		}
@@ -471,7 +471,7 @@ func (w *LocalWallet) CollateralInfo(ctx context.Context, chainName string, coll
 	return tw.Flush(os.Stdout)
 }
 
-func (w *LocalWallet) CollateralWithdraw(ctx context.Context, chainName string, to string, amount string, collateralType string) (string, error) {
+func (w *LocalWallet) CollateralWithdraw(ctx context.Context, chainName string, address string, amount string, cpAccountAddress string, collateralType string) (string, error) {
 	defer w.keystore.Close()
 	withDrawAmount, err := convertToWei(amount)
 	if err != nil {
@@ -483,12 +483,12 @@ func (w *LocalWallet) CollateralWithdraw(ctx context.Context, chainName string, 
 		return "", err
 	}
 
-	ki, err := w.FindKey(to)
+	ki, err := w.FindKey(address)
 	if err != nil {
 		return "", err
 	}
 	if ki == nil {
-		return "", xerrors.Errorf("the address: %s, private key %w,", to, ErrKeyInfoNotFound)
+		return "", xerrors.Errorf("the address: %s, private key %w,", address, ErrKeyInfoNotFound)
 	}
 
 	client, err := ethclient.Dial(chainUrl)
@@ -508,7 +508,7 @@ func (w *LocalWallet) CollateralWithdraw(ctx context.Context, chainName string, 
 		if err != nil {
 			return "", err
 		}
-		return zkCollateral.Withdraw(withDrawAmount)
+		return zkCollateral.Withdraw(cpAccountAddress, withDrawAmount)
 	}
 }
 
