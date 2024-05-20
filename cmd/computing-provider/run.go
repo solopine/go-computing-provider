@@ -461,14 +461,14 @@ var changeOwnerAddressCmd = &cli.Command{
 	ArgsUsage: "[newOwnerAddress]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:     "oldOwnerAddress",
+			Name:     "ownerAddress",
 			Usage:    "Specify a OwnerAddress",
 			Required: true,
 		},
 	},
 	Action: func(cctx *cli.Context) error {
 
-		ownerAddress := cctx.String("oldOwnerAddress")
+		ownerAddress := cctx.String("ownerAddress")
 		if strings.TrimSpace(ownerAddress) == "" {
 			return fmt.Errorf("ownerAddress is not empty")
 		}
