@@ -155,7 +155,10 @@ var infoCmd = &cli.Command{
 
 		ecpCollateral, err := account.NewCollateralStub(client, account.WithPublicKey(ownerAddress))
 		if err == nil {
-			ecpCollateralBalance, err = ecpCollateral.Balances()
+			cpCollateralInfo, err := ecpCollateral.CpInfo()
+			if err == nil {
+				ecpCollateralBalance = cpCollateralInfo.CollateralBalance
+			}
 		}
 
 		var domain = conf.GetConfig().API.Domain

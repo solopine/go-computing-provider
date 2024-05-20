@@ -431,16 +431,17 @@ func (w *LocalWallet) CollateralInfo(ctx context.Context, chainName string, coll
 				collateralBalance, err = collateralStub.Balances()
 			}
 			frozenCollateral, err = getFrozenCollateral(addr)
-		} else {
-			zkCollateral, err := account.NewCollateralStub(client)
-			if err == nil {
-				cpInfo, err := zkCollateral.CpInfo(addr)
-				if err == nil {
-					collateralBalance = cpInfo.CollateralBalance
-					frozenCollateral = cpInfo.FrozenBalance
-				}
-			}
 		}
+		//} else {
+		//	zkCollateral, err := account.NewCollateralStub(client)
+		//	if err == nil {
+		//		cpInfo, err := zkCollateral.CpInfo(addr)
+		//		if err == nil {
+		//			collateralBalance = cpInfo.CollateralBalance
+		//			frozenCollateral = cpInfo.FrozenBalance
+		//		}
+		//	}
+		//}
 
 		var errmsg string
 		if err != nil {

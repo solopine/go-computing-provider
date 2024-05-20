@@ -392,25 +392,25 @@ var collateralInfoCmd = &cli.Command{
 			return fmt.Errorf("failed to parse chain: %s", chain)
 		}
 
-		fcpCollateral := cctx.Bool("fcp")
-		ecpCollateral := cctx.Bool("ecp")
-		if !fcpCollateral && !ecpCollateral {
-			return fmt.Errorf("must specify one of fcp or ecp")
-		}
-		var collateralType string
-		if fcpCollateral {
-			collateralType = "fcp"
-		}
-		if ecpCollateral {
-			collateralType = "ecp"
-		}
+		//fcpCollateral := cctx.Bool("fcp")
+		//ecpCollateral := cctx.Bool("ecp")
+		//if !fcpCollateral && !ecpCollateral {
+		//	return fmt.Errorf("must specify one of fcp or ecp")
+		//}
+		//var collateralType string
+		//if fcpCollateral {
+		//	collateralType = "fcp"
+		//}
+		//if ecpCollateral {
+		//	collateralType = "ecp"
+		//}
 
 		localWallet, err := wallet.SetupWallet(wallet.WalletRepo)
 		if err != nil {
 			return err
 		}
 
-		return localWallet.CollateralInfo(ctx, chain, collateralType)
+		return localWallet.CollateralInfo(ctx, chain, "fcp")
 	},
 }
 
