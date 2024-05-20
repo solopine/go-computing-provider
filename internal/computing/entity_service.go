@@ -77,6 +77,12 @@ func (jobServ JobService) GetJobEntityBySpaceUuid(spaceUuid string) (models.JobE
 	return job, err
 }
 
+func (jobServ JobService) GetJobEntityByJobUuid(jobUuid string) (models.JobEntity, error) {
+	var job models.JobEntity
+	err := jobServ.Where("job_uuid=?", jobUuid).Find(&job).Error
+	return job, err
+}
+
 func (jobServ JobService) DeleteJobEntityBySpaceUuId(spaceUuid string) error {
 	return jobServ.Where("space_uuid=?", spaceUuid).Delete(&models.JobEntity{}).Error
 }

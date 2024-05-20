@@ -418,6 +418,33 @@ func CancelJob(c *gin.Context) {
 	c.JSON(http.StatusOK, util.CreateSuccessResponse("deleted success"))
 }
 
+func WhiteList(c *gin.Context) {
+	walletWhiteListUrl := conf.GetConfig().API.WalletWhiteList
+	list, _ := getWhiteList(walletWhiteListUrl)
+	c.JSON(http.StatusOK, util.CreateSuccessResponse(list))
+}
+
+func GetJobStatus(c *gin.Context) {
+	jobUuId := c.Param("job_uuid")
+	if jobUuId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing required field: job_uuid"})
+	}
+
+	jobEntity, err := NewJobService().GetJobEntityByJobUuid(jobUuId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.CreateErrorResponse(util.SpaceDeployStatusError))
+	}
+
+	var jobResult struct {
+		Uuid   string
+		Status string
+	}
+	jobResult.Uuid = jobEntity.JobUuid
+	jobResult.Status = models.GetDeployStatusStr(jobEntity.DeployStatus)
+
+	c.JSON(http.StatusOK, util.CreateSuccessResponse(jobResult))
+}
+
 func StatisticalSources(c *gin.Context) {
 	location, err := getLocation()
 	if err != nil {
@@ -1171,49 +1198,67 @@ func convertGpuName(name string) string {
 	return strings.ToUpper(name)
 }
 
+func getWhiteList(whiteListUrl string) ([]string, error) {
+	if whiteListUrl == "" {
+		return nil, nil
+	}
+
+	var walletMap = make(map[string]struct{})
+	resp, err := http.Get(whiteListUrl)
+	if err != nil {
+		logs.GetLogger().Errorf("send wallet whitelist failed, error: %v", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		logs.GetLogger().Errorf("response wallet whitelist failed, error: %v", err)
+		return nil, err
+	}
+
+	var addressList []string
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		if strings.HasPrefix(scanner.Text(), "#") {
+			continue
+		}
+		walletAddress := scanner.Text()
+		if strings.TrimSpace(walletAddress) != "" {
+			walletMap[walletAddress] = struct{}{}
+		}
+
+		addressList = append(addressList, walletAddress)
+	}
+
+	if err := scanner.Err(); err != nil {
+		logs.GetLogger().Errorf("read response of wallet whitelist failed, error: %v", err)
+		return nil, err
+	}
+	return addressList, nil
+}
+
 func CheckWalletWhiteList(jobSourceURI string) bool {
 	walletWhiteListUrl := conf.GetConfig().API.WalletWhiteList
-	if strings.TrimSpace(walletWhiteListUrl) != "" {
-		var walletMap = make(map[string]struct{})
-		resp, err := http.Get(walletWhiteListUrl)
-		if err != nil {
-			logs.GetLogger().Errorf("send wallet whitelist failed, error: %v", err)
-			return false
-		}
-		defer resp.Body.Close()
+	if walletWhiteListUrl == "" {
+		return true
+	}
+	whiteList, err := getWhiteList(walletWhiteListUrl)
+	if err != nil {
+		logs.GetLogger().Errorf("get whiteList By url failed, url: %s, error: %v", err)
+		return false
+	}
 
-		if resp.StatusCode != http.StatusOK {
-			logs.GetLogger().Errorf("response wallet whitelist failed, error: %v", err)
-			return false
-		}
+	spaceDetail, err := getSpaceDetail(jobSourceURI)
+	if err != nil {
+		logs.GetLogger().Errorln(err)
+		return false
+	}
+	userWalletAddress := spaceDetail.Data.Owner.PublicAddress
 
-		scanner := bufio.NewScanner(resp.Body)
-		for scanner.Scan() {
-			if strings.HasPrefix(scanner.Text(), "#") {
-				continue
-			}
-			walletAddress := scanner.Text()
-			if strings.TrimSpace(walletAddress) != "" {
-				walletMap[walletAddress] = struct{}{}
-			}
-		}
-
-		if err := scanner.Err(); err != nil {
-			logs.GetLogger().Errorf("read response of wallet whitelist failed, error: %v", err)
-			return false
-		}
-
-		spaceDetail, err := getSpaceDetail(jobSourceURI)
-		if err != nil {
-			logs.GetLogger().Errorln(err)
-			return false
-		}
-		userWalletAddress := spaceDetail.Data.Owner.PublicAddress
-		if _, ok := walletMap[userWalletAddress]; ok {
+	for _, address := range whiteList {
+		if userWalletAddress == address {
 			return true
-		} else {
-			return false
 		}
 	}
-	return true
+	return false
 }

@@ -75,6 +75,8 @@ func cpManager(router *gin.RouterGroup) {
 	router.POST("/lagrange/jobs/renew", computing.ReNewJob)
 	router.GET("/lagrange/spaces/log", computing.GetSpaceLog)
 	router.POST("/lagrange/cp/proof", computing.DoProof)
+	router.GET("/lagrange/cp/whiteList", computing.WhiteList)
+	router.GET("/lagrange/job/:job_uuid", computing.GetJobStatus)
 
 	router.POST("/cp/ubi", computing.DoUbiTaskForK8s)
 	router.POST("/cp/receive/ubi", computing.ReceiveUbiProofForK8s)

@@ -55,6 +55,7 @@ const (
 
 	BadParamError           = 5001
 	SpaceSignatureError     = 6001
+	SpaceDeployStatusError  = 6002
 	ProofParamError         = 7001
 	ProofReadLogError       = 7002
 	ProofError              = 7003
@@ -67,10 +68,11 @@ const (
 )
 
 var codeMsg = map[int]string{
-	BadParamError:       "The request parameter is not valid",
-	JsonError:           "An error occurred while converting to json",
-	ServerError:         "Service failed",
-	SpaceSignatureError: "Verify signature failed",
+	BadParamError:          "The request parameter is not valid",
+	JsonError:              "An error occurred while converting to json",
+	ServerError:            "Service failed",
+	SpaceSignatureError:    "Verify signature failed",
+	SpaceDeployStatusError: "Check deploy status failed",
 
 	ProofReadLogError: "An error occurred while read the log of proof",
 	ProofError:        "An error occurred while executing the calculation task",
