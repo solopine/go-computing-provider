@@ -165,6 +165,7 @@ func (s *CpStub) GetCpAccountInfo() (models.Account, error) {
 	account.Beneficiary = cpAccount.Beneficiary.Hex()
 	account.WorkerAddress = cpAccount.Worker.Hex()
 	account.Version = cpAccount.Version
+	account.Contract = s.ContractAddress
 	return account, nil
 }
 

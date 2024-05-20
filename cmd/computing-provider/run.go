@@ -470,7 +470,7 @@ var changeOwnerAddressCmd = &cli.Command{
 
 		ownerAddress := cctx.String("ownerAddress")
 		if strings.TrimSpace(ownerAddress) == "" {
-			return fmt.Errorf("ownerAddress is not empty")
+			return fmt.Errorf("ownerAddress is required")
 		}
 
 		if cctx.NArg() != 1 {
@@ -523,18 +523,18 @@ var changeOwnerAddressCmd = &cli.Command{
 
 		cpAccount, err := cpStub.GetCpAccountInfo()
 		if err != nil {
-			return fmt.Errorf("get cpAccount faile, error: %v", err)
+			return fmt.Errorf("get cpAccount failed, error: %v", err)
 		}
 		if !strings.EqualFold(cpAccount.OwnerAddress, ownerAddress) {
-			return fmt.Errorf("the owner address is incorrect. The owner on the chain is %s, and the current address is %s", cpAccount.OwnerAddress, ownerAddress)
+			return fmt.Errorf("Only the owner can change CP account owner address, the CP account is: %s, the owner should be %s", cpAccount.Contract, cpAccount.OwnerAddress)
 		}
 
-		submitUBIProofTx, err := cpStub.ChangeOwnerAddress(common.HexToAddress(newOwnerAddr))
+		changeOwnerAddressTx, err := cpStub.ChangeOwnerAddress(common.HexToAddress(newOwnerAddr))
 		if err != nil {
 			logs.GetLogger().Errorf("change owner address tx failed, error: %v,", err)
 			return err
 		}
-		fmt.Printf("ChangeOwnerAddress: %s \n", submitUBIProofTx)
+		fmt.Printf("ChangeOwnerAddress: %s \n", changeOwnerAddressTx)
 
 		return nil
 	},

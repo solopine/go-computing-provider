@@ -157,6 +157,7 @@ type Account struct {
 	Beneficiary    string
 	WorkerAddress  string
 	Version        string
+	Contract       string
 }
 
 type CpCollateralInfo struct {
