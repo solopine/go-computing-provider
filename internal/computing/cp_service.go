@@ -1331,14 +1331,8 @@ func convertGpuName(name string) string {
 			return strings.Replace(name, "Tesla ", "", 1)
 		}
 
-		if strings.HasPrefix(strings.ToUpper(name), "NVIDIA") {
-			if strings.Contains(name, "GeForce") {
-				name = strings.Replace(name, "GeForce", "", 1)
-			}
-		} else {
-			if strings.Contains(name, "GeForce") {
-				name = strings.Replace(name, "GeForce ", "", 1)
-			}
+		if strings.Contains(name, "GeForce") {
+			name = strings.Replace(name, "GeForce ", "", 1)
 		}
 		return strings.Replace(name, "RTX ", "", 1)
 	} else {
