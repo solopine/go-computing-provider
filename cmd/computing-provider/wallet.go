@@ -315,14 +315,6 @@ var collateralCmd = &cli.Command{
 			Usage: "Specify which rpc connection chain to use",
 			Value: conf.DefaultRpc,
 		},
-		&cli.BoolFlag{
-			Name:  "fcp",
-			Usage: "Specify the fcp collateral",
-		},
-		&cli.BoolFlag{
-			Name:  "ecp",
-			Usage: "Specify the ecp collateral",
-		},
 	},
 	Subcommands: []*cli.Command{
 		collateralInfoCmd,
@@ -333,8 +325,18 @@ var collateralCmd = &cli.Command{
 }
 
 var collateralAddCmd = &cli.Command{
-	Name:      "add",
-	Usage:     "Send the collateral amount to the collateral contract address",
+	Name:  "add",
+	Usage: "Send the collateral amount to the collateral contract address",
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "fcp",
+			Usage: "Specify the fcp collateral",
+		},
+		&cli.BoolFlag{
+			Name:  "ecp",
+			Usage: "Specify the ecp collateral",
+		},
+	},
 	ArgsUsage: "add [targetAddress] [amount]",
 	Action: func(cctx *cli.Context) error {
 		ctx := reqContext(cctx)
@@ -415,8 +417,18 @@ var collateralInfoCmd = &cli.Command{
 }
 
 var collateralWithdrawCmd = &cli.Command{
-	Name:      "withdraw",
-	Usage:     "Withdraw funds from the collateral contract",
+	Name:  "withdraw",
+	Usage: "Withdraw funds from the collateral contract",
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "fcp",
+			Usage: "Specify the fcp collateral",
+		},
+		&cli.BoolFlag{
+			Name:  "ecp",
+			Usage: "Specify the ecp collateral",
+		},
+	},
 	ArgsUsage: "[targetAddress] [amount]",
 	Action: func(cctx *cli.Context) error {
 		ctx := reqContext(cctx)

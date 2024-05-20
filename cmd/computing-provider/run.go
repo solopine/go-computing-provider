@@ -461,7 +461,7 @@ var changeOwnerAddressCmd = &cli.Command{
 	ArgsUsage: "[newOwnerAddress]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:     "ownerAddress",
+			Name:     "oldOwnerAddress",
 			Usage:    "Specify a OwnerAddress",
 			Required: true,
 		},
