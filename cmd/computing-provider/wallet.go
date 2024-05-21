@@ -340,17 +340,14 @@ var collateralAddCmd = &cli.Command{
 			Name:  "from",
 			Usage: "Specify the owner address",
 		},
-		&cli.BoolFlag{
+		&cli.StringFlag{
 			Name:  "account",
-			Usage: "Specify the cp account address",
+			Usage: "Specify the cp account address, if not specified, cp account is the content of the account file under the CP_PATH variable",
 		},
 	},
 	ArgsUsage: "[amount]",
 	Action: func(cctx *cli.Context) error {
 		ctx := reqContext(cctx)
-		if cctx.NArg() != 2 {
-			return fmt.Errorf("need two params: the from address and amount")
-		}
 		chain := cctx.String("chain")
 		if strings.TrimSpace(chain) == "" {
 			return fmt.Errorf("chain field cannot be empty")
@@ -375,9 +372,6 @@ var collateralAddCmd = &cli.Command{
 		}
 
 		cpAccountAddress := cctx.String("account")
-		if strings.TrimSpace(cpAccountAddress) == "" {
-			return fmt.Errorf("the account is required")
-		}
 
 		amount := cctx.Args().Get(0)
 		if strings.TrimSpace(amount) == "" {
