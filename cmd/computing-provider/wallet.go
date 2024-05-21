@@ -426,18 +426,14 @@ var collateralWithdrawCmd = &cli.Command{
 			Name:  "owner",
 			Usage: "Specify the owner address",
 		},
-		&cli.BoolFlag{
+		&cli.StringFlag{
 			Name:  "account",
-			Usage: "Specify the cp account address",
+			Usage: "Specify the cp account address, if not specified, cp account is the content of the account file under the CP_PATH variable",
 		},
 	},
 	ArgsUsage: "[amount]",
 	Action: func(cctx *cli.Context) error {
 		ctx := reqContext(cctx)
-		if cctx.NArg() != 2 {
-			return fmt.Errorf("need two params: the to address and amount")
-		}
-
 		chain := cctx.String("chain")
 		if strings.TrimSpace(chain) == "" {
 			return fmt.Errorf("chain field cannot be empty")
@@ -462,10 +458,6 @@ var collateralWithdrawCmd = &cli.Command{
 		}
 
 		cpAccountAddress := cctx.String("account")
-		if strings.TrimSpace(cpAccountAddress) == "" {
-			return fmt.Errorf("the account is required")
-		}
-
 		amount := cctx.Args().Get(0)
 		if strings.TrimSpace(amount) == "" {
 			return fmt.Errorf("the amount param cannot be empty")
