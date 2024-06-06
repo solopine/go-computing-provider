@@ -232,7 +232,7 @@ var stateInfoCmd = &cli.Command{
 		}
 		defer client.Close()
 
-		var balance, collateralBalance, ownerBalance string
+		var ownerBalance string
 		var contractAddress, ownerAddress, beneficiaryAddress, ubiFlag, chainNodeId, chainMultiAddress string
 
 		cpStub, err := account.NewAccountStub(client, account.WithContractAddress(cctx.Args().Get(0)))
@@ -253,20 +253,10 @@ var stateInfoCmd = &cli.Command{
 			chainMultiAddress = strings.Join(cpAccount.MultiAddresses, ",")
 		}
 
-		balance, err = wallet.Balance(context.TODO(), client, conf.GetConfig().HUB.WalletAddress)
-		collateralStub, err := collateral.NewCollateralStub(client, collateral.WithPublicKey(conf.GetConfig().HUB.WalletAddress))
-		if err == nil {
-			collateralBalance, err = collateralStub.Balances()
-		}
-
 		if ownerAddress != "" {
 			ownerBalance, err = wallet.Balance(context.TODO(), client, ownerAddress)
 		}
 
-		var domain = conf.GetConfig().API.Domain
-		if strings.HasPrefix(domain, ".") {
-			domain = domain[1:]
-		}
 		var taskData [][]string
 
 		taskData = append(taskData, []string{"Multi-Address:", chainMultiAddress})
@@ -278,29 +268,9 @@ var stateInfoCmd = &cli.Command{
 		taskData = append(taskData, []string{"   Beneficiary Address:", beneficiaryAddress})
 		taskData = append(taskData, []string{"   Available(SWAN-ETH):", ownerBalance})
 		taskData = append(taskData, []string{"   Collateral(SWAN-ETH):", "0"})
-		taskData = append(taskData, []string{"FCP:"})
-		taskData = append(taskData, []string{"   Wallet:", conf.GetConfig().HUB.WalletAddress})
-		taskData = append(taskData, []string{"   Domain:", domain})
-		taskData = append(taskData, []string{"   Running deployments:", "0"})
-		taskData = append(taskData, []string{"   Available(SWAN-ETH):", balance})
-		taskData = append(taskData, []string{"   Collateral(SWAN-ETH):", collateralBalance})
-
-		var rowColor []tablewriter.Colors
-		if ubiFlag == "Accept" {
-			rowColor = []tablewriter.Colors{{tablewriter.Bold, tablewriter.FgGreenColor}}
-		} else {
-			rowColor = []tablewriter.Colors{{tablewriter.Bold, tablewriter.FgRedColor}}
-		}
-
-		var rowColorList []RowColor
-		rowColorList = append(rowColorList, RowColor{
-			row:    5,
-			column: []int{1},
-			color:  rowColor,
-		})
 
 		header := []string{"prod-env:", ""}
-		NewVisualTable(header, taskData, rowColorList).Generate(false)
+		NewVisualTable(header, taskData, []RowColor{}).Generate(false)
 		return nil
 	},
 }
