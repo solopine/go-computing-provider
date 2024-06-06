@@ -232,8 +232,6 @@ var stateInfoCmd = &cli.Command{
 		}
 		defer client.Close()
 
-		localNodeId := computing.GetNodeId(cpRepoPath)
-
 		var ownerBalance string
 		var contractAddress, ownerAddress, beneficiaryAddress, ubiFlag, chainNodeId, chainMultiAddress string
 
@@ -261,10 +259,8 @@ var stateInfoCmd = &cli.Command{
 
 		var taskData [][]string
 
-		taskData = append(taskData, []string{"Chain Multi-Address:", chainMultiAddress})
-		taskData = append(taskData, []string{"Multi-Address:", conf.GetConfig().API.MultiAddress})
-		taskData = append(taskData, []string{"Chain Node ID:", chainNodeId})
-		taskData = append(taskData, []string{"Local Node ID:", localNodeId})
+		taskData = append(taskData, []string{"Multi-Address:", chainMultiAddress})
+		taskData = append(taskData, []string{"Node ID:", chainNodeId})
 		taskData = append(taskData, []string{"ECP:"})
 		taskData = append(taskData, []string{"   Contract Address:", contractAddress})
 		taskData = append(taskData, []string{"   UBI FLAG:", ubiFlag})
