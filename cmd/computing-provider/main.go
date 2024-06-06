@@ -33,6 +33,7 @@ func main() {
 			initCmd,
 			runCmd,
 			infoCmd,
+			stateCmd,
 			accountCmd,
 			taskCmd,
 			walletCmd,

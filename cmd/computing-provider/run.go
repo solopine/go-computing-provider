@@ -194,6 +194,131 @@ var infoCmd = &cli.Command{
 	},
 }
 
+var stateCmd = &cli.Command{
+	Name:  "state",
+	Usage: "Print computing-provider info on the chain",
+	Subcommands: []*cli.Command{
+		stateInfoCmd,
+	},
+}
+
+var stateInfoCmd = &cli.Command{
+	Name:      "cp-info",
+	Usage:     "Print computing-provider chain info",
+	ArgsUsage: "[cp_account_contract_address]",
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:  "chain",
+			Usage: "Specify which rpc connection chain to use",
+			Value: conf.DefaultRpc,
+		},
+	},
+	Action: func(cctx *cli.Context) error {
+		cpRepoPath, ok := os.LookupEnv("CP_PATH")
+		if !ok {
+			return fmt.Errorf("missing CP_PATH env, please set export CP_PATH=<YOUR CP_PATH>")
+		}
+		if err := conf.InitConfig(cpRepoPath, true); err != nil {
+			return fmt.Errorf("load config file failed, error: %+v", err)
+		}
+
+		localNodeId := computing.GetNodeId(cpRepoPath)
+
+		k8sService := computing.NewK8sService()
+		var count int
+		if k8sService.Version == "" {
+			count = 0
+		} else {
+			count, _ = k8sService.GetDeploymentActiveCount()
+		}
+
+		chainRpc, err := conf.GetRpcByName(conf.DefaultRpc)
+		if err != nil {
+			return err
+		}
+		client, err := ethclient.Dial(chainRpc)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
+
+		var balance, collateralBalance, ownerBalance string
+		var contractAddress, ownerAddress, beneficiaryAddress, ubiFlag, chainNodeId, chainMultiAddress string
+
+		cpStub, err := account.NewAccountStub(client, account.WithContractAddress(cctx.Args().Get(0)))
+		if err == nil {
+			cpAccount, err := cpStub.GetCpAccountInfo()
+			if err != nil {
+				err = fmt.Errorf("get cpAccount failed, error: %v", err)
+			}
+			if cpAccount.UbiFlag == 1 {
+				ubiFlag = "Accept"
+			} else {
+				ubiFlag = "Reject"
+			}
+			contractAddress = cpStub.ContractAddress
+			ownerAddress = cpAccount.OwnerAddress
+			beneficiaryAddress = cpAccount.Beneficiary.BeneficiaryAddress
+			chainNodeId = cpAccount.NodeId
+			chainMultiAddress = strings.Join(cpAccount.MultiAddresses, ",")
+		}
+
+		balance, err = wallet.Balance(context.TODO(), client, conf.GetConfig().HUB.WalletAddress)
+		collateralStub, err := collateral.NewCollateralStub(client, collateral.WithPublicKey(conf.GetConfig().HUB.WalletAddress))
+		if err == nil {
+			collateralBalance, err = collateralStub.Balances()
+		}
+
+		if ownerAddress != "" {
+			ownerBalance, err = wallet.Balance(context.TODO(), client, ownerAddress)
+		}
+
+		var domain = conf.GetConfig().API.Domain
+		if strings.HasPrefix(domain, ".") {
+			domain = domain[1:]
+		}
+		var taskData [][]string
+
+		taskData = append(taskData, []string{"Multi-Address:", chainMultiAddress})
+		taskData = append(taskData, []string{"Local Node ID:", localNodeId})
+		taskData = append(taskData, []string{"Chain Node ID:", chainNodeId})
+		taskData = append(taskData, []string{"ECP:"})
+		taskData = append(taskData, []string{"   Contract Address:", contractAddress})
+		taskData = append(taskData, []string{"   UBI FLAG:", ubiFlag})
+		taskData = append(taskData, []string{"   Owner:", ownerAddress})
+		taskData = append(taskData, []string{"   Beneficiary Address:", beneficiaryAddress})
+		taskData = append(taskData, []string{"   Available(SWAN-ETH):", ownerBalance})
+		taskData = append(taskData, []string{"   Collateral(SWAN-ETH):", "0"})
+		taskData = append(taskData, []string{"FCP:"})
+		taskData = append(taskData, []string{"   Wallet:", conf.GetConfig().HUB.WalletAddress})
+		taskData = append(taskData, []string{"   Domain:", domain})
+		taskData = append(taskData, []string{"   Running deployments:", strconv.Itoa(count)})
+		taskData = append(taskData, []string{"   Available(SWAN-ETH):", balance})
+		taskData = append(taskData, []string{"   Collateral(SWAN-ETH):", collateralBalance})
+
+		var rowColor []tablewriter.Colors
+		if ubiFlag == "Accept" {
+			rowColor = []tablewriter.Colors{{tablewriter.Bold, tablewriter.FgGreenColor}}
+		} else {
+			rowColor = []tablewriter.Colors{{tablewriter.Bold, tablewriter.FgRedColor}}
+		}
+
+		var rowColorList []RowColor
+		rowColorList = append(rowColorList, RowColor{
+			row:    5,
+			column: []int{1},
+			color:  rowColor,
+		})
+
+		header := []string{"Name:", conf.GetConfig().API.NodeName}
+		NewVisualTable(header, taskData, rowColorList).Generate(false)
+		if localNodeId != chainNodeId {
+			fmt.Printf("NodeId mismatch, local node id: %s, chain node id: %s.\n", localNodeId, chainNodeId)
+		}
+		return nil
+	},
+}
+
 var initCmd = &cli.Command{
 	Name:  "init",
 	Usage: "Initialize a new cp",

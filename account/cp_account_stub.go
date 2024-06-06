@@ -31,6 +31,12 @@ func WithCpPrivateKey(pk string) CpOption {
 	}
 }
 
+func WithContractAddress(contractAddress string) CpOption {
+	return func(obj *CpStub) {
+		obj.ContractAddress = contractAddress
+	}
+}
+
 func NewAccountStub(client *ethclient.Client, options ...CpOption) (*CpStub, error) {
 	stub := &CpStub{}
 	for _, option := range options {
@@ -47,12 +53,15 @@ func NewAccountStub(client *ethclient.Client, options ...CpOption) (*CpStub, err
 		return nil, fmt.Errorf("please use the init command to initialize the account of CP")
 	}
 
-	accountAddress, err := os.ReadFile(filepath.Join(cpPath, "account"))
-	if err != nil {
-		return nil, fmt.Errorf("get cp account contract address failed, error: %v", err)
+	if stub.ContractAddress == "" || len(strings.TrimSpace(stub.ContractAddress)) == 0 {
+		accountAddress, err := os.ReadFile(filepath.Join(cpPath, "account"))
+		if err != nil {
+			return nil, fmt.Errorf("get cp account contract address failed, error: %v", err)
+		}
+		stub.ContractAddress = string(accountAddress)
 	}
 
-	cpAccountAddress := common.HexToAddress(string(accountAddress))
+	cpAccountAddress := common.HexToAddress(stub.ContractAddress)
 	taskClient, err := NewAccount(cpAccountAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("create cp account contract client, error: %+v", err)
@@ -60,7 +69,6 @@ func NewAccountStub(client *ethclient.Client, options ...CpOption) (*CpStub, err
 
 	stub.account = taskClient
 	stub.client = client
-	stub.ContractAddress = string(accountAddress)
 	return stub, nil
 }
 
