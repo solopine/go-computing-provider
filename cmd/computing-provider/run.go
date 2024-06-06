@@ -222,16 +222,6 @@ var stateInfoCmd = &cli.Command{
 			return fmt.Errorf("load config file failed, error: %+v", err)
 		}
 
-		localNodeId := computing.GetNodeId(cpRepoPath)
-
-		k8sService := computing.NewK8sService()
-		var count int
-		if k8sService.Version == "" {
-			count = 0
-		} else {
-			count, _ = k8sService.GetDeploymentActiveCount()
-		}
-
 		chainRpc, err := conf.GetRpcByName(conf.DefaultRpc)
 		if err != nil {
 			return err
@@ -280,7 +270,6 @@ var stateInfoCmd = &cli.Command{
 		var taskData [][]string
 
 		taskData = append(taskData, []string{"Multi-Address:", chainMultiAddress})
-		taskData = append(taskData, []string{"Local Node ID:", localNodeId})
 		taskData = append(taskData, []string{"Chain Node ID:", chainNodeId})
 		taskData = append(taskData, []string{"ECP:"})
 		taskData = append(taskData, []string{"   Contract Address:", contractAddress})
@@ -292,7 +281,7 @@ var stateInfoCmd = &cli.Command{
 		taskData = append(taskData, []string{"FCP:"})
 		taskData = append(taskData, []string{"   Wallet:", conf.GetConfig().HUB.WalletAddress})
 		taskData = append(taskData, []string{"   Domain:", domain})
-		taskData = append(taskData, []string{"   Running deployments:", strconv.Itoa(count)})
+		taskData = append(taskData, []string{"   Running deployments:", "0"})
 		taskData = append(taskData, []string{"   Available(SWAN-ETH):", balance})
 		taskData = append(taskData, []string{"   Collateral(SWAN-ETH):", collateralBalance})
 
@@ -310,11 +299,8 @@ var stateInfoCmd = &cli.Command{
 			color:  rowColor,
 		})
 
-		header := []string{"Name:", conf.GetConfig().API.NodeName}
+		header := []string{"prod-env:", ""}
 		NewVisualTable(header, taskData, rowColorList).Generate(false)
-		if localNodeId != chainNodeId {
-			fmt.Printf("NodeId mismatch, local node id: %s, chain node id: %s.\n", localNodeId, chainNodeId)
-		}
 		return nil
 	},
 }
