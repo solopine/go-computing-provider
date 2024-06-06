@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/filswan/go-mcs-sdk/mcs/api/common/logs"
 	"github.com/swanchain/go-computing-provider/internal/models"
 	"math/big"
 	"os"
@@ -159,7 +158,6 @@ func (s *CpStub) ChangeUbiFlag(newUbiFlag uint8) (string, error) {
 }
 
 func (s *CpStub) GetCpAccountInfo() (models.Account, error) {
-	logs.GetLogger().Infof("check cp account %s info", s.ContractAddress)
 	ownerAddress, nodeId, multiAddresses, ubiFlag, beneficiaryAddress, quota, expiration, err := s.account.GetAccount(&bind.CallOpts{})
 	if err != nil {
 		return models.Account{}, fmt.Errorf("cpAccount client create GetCpAccountInfo tx error: %+v", err)
