@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/filswan/go-mcs-sdk/mcs/api/common/logs"
 	"github.com/swanchain/go-computing-provider/internal/models"
 	"math/big"
 	"os"
@@ -46,11 +47,6 @@ func NewAccountStub(client *ethclient.Client, options ...CpOption) (*CpStub, err
 	cpPath, exit := os.LookupEnv("CP_PATH")
 	if !exit {
 		return nil, fmt.Errorf("missing CP_PATH env, please set export CP_PATH=<YOUR CP_PATH>")
-	}
-
-	accountFileName := filepath.Join(cpPath, "account")
-	if _, err := os.Stat(accountFileName); err != nil {
-		return nil, fmt.Errorf("please use the init command to initialize the account of CP")
 	}
 
 	if stub.ContractAddress == "" || len(strings.TrimSpace(stub.ContractAddress)) == 0 {
@@ -163,6 +159,7 @@ func (s *CpStub) ChangeUbiFlag(newUbiFlag uint8) (string, error) {
 }
 
 func (s *CpStub) GetCpAccountInfo() (models.Account, error) {
+	logs.GetLogger().Infof("check cp account %s info", s.ContractAddress)
 	ownerAddress, nodeId, multiAddresses, ubiFlag, beneficiaryAddress, quota, expiration, err := s.account.GetAccount(&bind.CallOpts{})
 	if err != nil {
 		return models.Account{}, fmt.Errorf("cpAccount client create GetCpAccountInfo tx error: %+v", err)

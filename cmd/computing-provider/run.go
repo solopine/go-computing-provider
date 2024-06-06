@@ -259,8 +259,10 @@ var stateInfoCmd = &cli.Command{
 
 		var taskData [][]string
 
-		taskData = append(taskData, []string{"Multi-Address:", chainMultiAddress})
+		taskData = append(taskData, []string{"Chain Multi-Address:", chainMultiAddress})
+		taskData = append(taskData, []string{"Multi-Address:", conf.GetConfig().API.MultiAddress})
 		taskData = append(taskData, []string{"Chain Node ID:", chainNodeId})
+		taskData = append(taskData, []string{"Local Node ID:", chainNodeId})
 		taskData = append(taskData, []string{"ECP:"})
 		taskData = append(taskData, []string{"   Contract Address:", contractAddress})
 		taskData = append(taskData, []string{"   UBI FLAG:", ubiFlag})
@@ -269,7 +271,7 @@ var stateInfoCmd = &cli.Command{
 		taskData = append(taskData, []string{"   Available(SWAN-ETH):", ownerBalance})
 		taskData = append(taskData, []string{"   Collateral(SWAN-ETH):", "0"})
 
-		header := []string{"prod-env:", ""}
+		header := []string{"Name:", conf.GetConfig().API.NodeName}
 		NewVisualTable(header, taskData, []RowColor{}).Generate(false)
 		return nil
 	},
