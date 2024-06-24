@@ -1122,3 +1122,15 @@ func getReward(task *models.TaskEntity) error {
 	}
 	return nil
 }
+
+func DoTest() error {
+	k8sService := NewK8sService()
+	nodes, err := k8sService.k8sClient.CoreV1().Nodes().List(context.TODO(), metaV1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, node := range nodes.Items {
+		fmt.Printf("node: %v.\n", node)
+	}
+	return nil
+}
