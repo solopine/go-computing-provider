@@ -40,6 +40,7 @@ func main() {
 			walletCmd,
 			collateralCmd,
 			ubiTaskCmd,
+			testCmd,
 		},
 		Before: func(c *cli.Context) error {
 			cpRepoPath, err := homedir.Expand(c.String(FlagRepo.Name))
