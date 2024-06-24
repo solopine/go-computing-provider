@@ -207,6 +207,7 @@ func DoUbiTaskForK8s(c *gin.Context) {
 
 	go func() {
 		var namespace = "ubi-task-" + strconv.Itoa(ubiTask.ID)
+		logs.GetLogger().Infof("tx---namespace: %v", namespace)
 		var err error
 		defer func() {
 			ubiTaskRun, err := NewTaskService().GetTaskEntity(int64(ubiTask.ID))
@@ -255,6 +256,7 @@ func DoUbiTaskForK8s(c *gin.Context) {
 		receiveUrl := fmt.Sprintf("%s:%d/api/v1/computing/cp/receive/ubi", k8sService.GetAPIServerEndpoint(), conf.GetConfig().API.Port)
 		execCommand := []string{"ubi-bench", "c2"}
 		JobName := strings.ToLower(models.UbiTaskTypeStr(ubiTask.Type)) + "-" + strconv.Itoa(ubiTask.ID)
+		logs.GetLogger().Infof("tx---JobName: %v", JobName)
 		filC2Param := envVars["FIL_PROOFS_PARAMETER_CACHE"]
 		if gpuFlag == "0" {
 			delete(envVars, "RUST_GPU_TOOLS_CUSTOM_GPU")
@@ -287,6 +289,7 @@ func DoUbiTaskForK8s(c *gin.Context) {
 				Value: ubiTask.InputParam,
 			},
 		)
+		logs.GetLogger().Infof("tx---useEnvVars: %v", useEnvVars)
 
 		job := &batchv1.Job{
 			ObjectMeta: metaV1.ObjectMeta{
@@ -369,13 +372,14 @@ func DoUbiTaskForK8s(c *gin.Context) {
 			logs.GetLogger().Errorf("Failed list ubi pods: %v", err)
 			return
 		}
-
+		logs.GetLogger().Infof("tx---after.list.JobName: %v", JobName)
 		var podName string
 		for _, pod := range pods.Items {
+			logs.GetLogger().Infof("tx---pod.Name: %v", pod.Name)
 			podName = pod.Name
 			break
 		}
-
+		logs.GetLogger().Infof("tx---getlog.podName: %v", podName)
 		req := k8sService.k8sClient.CoreV1().Pods(namespace).GetLogs(podName, &v1.PodLogOptions{
 			Container:  "",
 			Follow:     true,
@@ -1129,8 +1133,21 @@ func DoTest() error {
 	if err != nil {
 		return err
 	}
+
+	activePods, err := k8sService.GetAllActivePod(context.TODO())
+
+	nodeGpuSummary, err := k8sService.GetNodeGpuSummary(context.TODO())
+	if err != nil {
+		return err
+	}
+	fmt.Printf("nodeGpuSummary: %v.\n", nodeGpuSummary)
+
 	for _, node := range nodes.Items {
 		fmt.Printf("node: %v.\n", node)
+
+		nodeGpu, remainderResource, _ := GetNodeResource(activePods, &node)
+		fmt.Printf("nodeGpu: %v.\n", nodeGpu)
+		fmt.Printf("remainderResource: %v.\n", remainderResource)
 	}
 	return nil
 }
