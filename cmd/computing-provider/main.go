@@ -42,6 +42,8 @@ func main() {
 			collateralCmd,
 			ubiTaskCmd,
 			contractCmd,
+			testCmd,
+			test2Cmd,
 		},
 		Before: func(c *cli.Context) error {
 			cpRepoPath, err := homedir.Expand(c.String(FlagRepo.Name))

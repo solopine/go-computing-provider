@@ -13,7 +13,8 @@ all: mainnet
 
 computing-provider:
 	rm -rf computing-provider
-	$(GOCC) build $(GOFLAGS) -o computing-provider ./cmd/computing-provider
+	$(GOCC) build $(GOFLAGS) -gcflags "all=-N -l" -o computing-provider ./cmd/computing-provider
+
 .PHONY: computing-provider
 
 install:

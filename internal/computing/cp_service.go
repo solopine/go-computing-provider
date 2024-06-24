@@ -914,6 +914,7 @@ func deleteJob(namespace, spaceUuid string, msg string) error {
 		<-ticker.C
 		count++
 		if count >= 20 {
+			logs.GetLogger().Errorf("tx----- timeout count >= 20, namepace: %s, spaceUuid: %s", namespace, spaceUuid)
 			break
 		}
 		getPods, err := k8sService.GetPods(namespace, spaceUuid)
@@ -922,6 +923,7 @@ func deleteJob(namespace, spaceUuid string, msg string) error {
 			continue
 		}
 		if !getPods {
+			logs.GetLogger().Infof("tx----- pod space deleted, namepace: %s, spaceUuid: %s", namespace, spaceUuid)
 			break
 		}
 	}
@@ -1192,34 +1194,35 @@ func getRegionByIpApi() (string, error) {
 }
 
 func getRegionByIpInfo() (string, error) {
-	req, err := http.NewRequest("GET", "https://ipinfo.io", nil)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
-
-	client := http.DefaultClient
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	ipBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var ipInfo struct {
-		Ip      string `json:"ip"`
-		City    string `json:"city"`
-		Region  string `json:"region"`
-		Country string `json:"country"`
-	}
-	if err = json.Unmarshal(ipBytes, &ipInfo); err != nil {
-		return "", err
-	}
-	region := strings.TrimSpace(ipInfo.Region) + "-" + ipInfo.Country
+	//req, err := http.NewRequest("GET", "https://ipinfo.io", nil)
+	//if err != nil {
+	//	return "", err
+	//}
+	//req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
+	//
+	//client := http.DefaultClient
+	//resp, err := client.Do(req)
+	//if err != nil {
+	//	return "", err
+	//}
+	//defer resp.Body.Close()
+	//
+	//ipBytes, err := io.ReadAll(resp.Body)
+	//if err != nil {
+	//	return "", err
+	//}
+	//
+	//var ipInfo struct {
+	//	Ip      string `json:"ip"`
+	//	City    string `json:"city"`
+	//	Region  string `json:"region"`
+	//	Country string `json:"country"`
+	//}
+	//if err = json.Unmarshal(ipBytes, &ipInfo); err != nil {
+	//	return "", err
+	//}
+	//region := strings.TrimSpace(ipInfo.Region) + "-" + ipInfo.Country
+	region := "Hong Kong-HK"
 	return region, nil
 }
 
@@ -1278,11 +1281,11 @@ func convertGpuName(name string) string {
 		if strings.Contains(name, "GeForce") {
 			name = strings.Replace(name, "GeForce ", "", 1)
 		}
-		return strings.Replace(name, "RTX ", "", 1)
+		name = strings.Replace(name, "RTX ", "", 1)
 	} else {
 		if strings.Contains(name, "GeForce") {
 			cpName := strings.Replace(name, "GeForce ", "NVIDIA", 1)
-			return strings.Replace(cpName, "RTX", "", 1)
+			name = strings.Replace(cpName, "RTX", "", 1)
 		}
 	}
 	return strings.ToUpper(name)

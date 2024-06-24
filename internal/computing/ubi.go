@@ -207,6 +207,7 @@ func DoUbiTaskForK8s(c *gin.Context) {
 
 	go func() {
 		var namespace = "ubi-task-" + strconv.Itoa(ubiTask.ID)
+		logs.GetLogger().Infof("tx---namespace: %v", namespace)
 		var err error
 		defer func() {
 			if err := recover(); err != nil {
@@ -254,6 +255,7 @@ func DoUbiTaskForK8s(c *gin.Context) {
 		receiveUrl := fmt.Sprintf("%s:%d/api/v1/computing/cp/receive/ubi", k8sService.GetAPIServerEndpoint(), conf.GetConfig().API.Port)
 		execCommand := []string{"ubi-bench", "c2"}
 		JobName := strings.ToLower(models.UbiTaskTypeStr(ubiTask.Type)) + "-" + strconv.Itoa(ubiTask.ID)
+		logs.GetLogger().Infof("tx---JobName: %v", JobName)
 		filC2Param := envVars["FIL_PROOFS_PARAMETER_CACHE"]
 		if gpuFlag == "0" {
 			delete(envVars, "RUST_GPU_TOOLS_CUSTOM_GPU")
@@ -286,6 +288,7 @@ func DoUbiTaskForK8s(c *gin.Context) {
 				Value: ubiTask.InputParam,
 			},
 		)
+		logs.GetLogger().Infof("tx---useEnvVars: %v", useEnvVars)
 
 		job := &batchv1.Job{
 			ObjectMeta: metaV1.ObjectMeta{
@@ -347,6 +350,9 @@ func DoUbiTaskForK8s(c *gin.Context) {
 				return false, err
 			}
 
+			if len(pods.Items) == 0 {
+				return false, nil
+			}
 			for _, p := range pods.Items {
 				for _, condition := range p.Status.Conditions {
 					if condition.Type != coreV1.PodReady && condition.Status != coreV1.ConditionTrue {
@@ -368,12 +374,14 @@ func DoUbiTaskForK8s(c *gin.Context) {
 			logs.GetLogger().Errorf("Failed list ubi pods: %v", err)
 			return
 		}
-
+		logs.GetLogger().Infof("tx---after.list.JobName: %v", JobName)
 		var podName string
 		for _, pod := range pods.Items {
+			logs.GetLogger().Infof("tx---pod.Name: %v", pod.Name)
 			podName = pod.Name
 			break
 		}
+		logs.GetLogger().Infof("tx---getlog.podName: %v", podName)
 		if podName == "" {
 			return
 		}
@@ -1136,5 +1144,56 @@ func getReward(task *models.TaskEntity) error {
 		task.SlashTx = slashTx
 		return NewTaskService().SaveTaskEntity(task)
 	}
+	return nil
+}
+
+func DoTest() error {
+	k8sService := NewK8sService()
+	nodes, err := k8sService.k8sClient.CoreV1().Nodes().List(context.TODO(), metaV1.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	activePods, err := k8sService.GetAllActivePod(context.TODO())
+
+	nodeGpuSummary, err := k8sService.GetNodeGpuSummary(context.TODO())
+	if err != nil {
+		return err
+	}
+	fmt.Printf("nodeGpuSummary: %v.\n", nodeGpuSummary)
+
+	for _, node := range nodes.Items {
+		fmt.Printf("node: %v.\n", node)
+
+		nodeGpu, remainderResource, _ := GetNodeResource(activePods, &node)
+		fmt.Printf("nodeGpu: %v.\n", nodeGpu)
+		fmt.Printf("remainderResource: %v.\n", remainderResource)
+	}
+	return nil
+}
+
+func DoTest2() error {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Errorf("task job: [updateUbiTaskReward], error: %+v", err)
+		}
+	}()
+
+	taskList, err := NewTaskService().GetTaskListNoReward()
+	if err != nil {
+		fmt.Errorf("get task list failed, error: %+v", err)
+		return err
+	}
+
+	for _, entity := range taskList {
+		ubiTask := entity
+		err = getReward(ubiTask)
+		if err != nil {
+			logs.GetLogger().Errorf("taskId: %d, %v", ubiTask.Id, err)
+			continue
+		}
+		break
+	}
+
 	return nil
 }
